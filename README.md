@@ -1,7 +1,7 @@
 # This is the Arduino IDE library using the UTF8_to_Shift_JIS conversion table for the ESP8266.
 
 これはESP-WROOM-02(ESP8266)の Arduino IDE ライブラリです。
-Version 1.0
+Version 1.3
 
 UTF8 to Shift_JIS 変換テーブルファイル "Utf8Sjis.tbl" を予めSPIFFSファイルシステムを使用して、ESP8266のフラッシュへアップロードしておく必要があります。
 
