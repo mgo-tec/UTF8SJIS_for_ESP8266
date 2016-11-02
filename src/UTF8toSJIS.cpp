@@ -1,6 +1,6 @@
 /*
   UTF8toSJIS.cpp - for ESP-WROOM-02 ( esp8266 )
-  Beta version 1.3
+  Beta version 1.33
   This is a library for converting from UTF-8 code string to Shift_JIS code string.
   In advance, you need to upload a conversion table file Utf8Sjis.tbl using SPIFFS file system ESP-WROOM-02(ESP8266) to flash.
   GitHub---> https://github.com/mgo-tec/UTF8_to_Shift_JIS
@@ -74,6 +74,7 @@ void UTF8toSJIS::UTF8_to_SJIS_str_cnv(const char* UTF8SJIS_file, String strUTF8,
       sj_cnt++;
       fnt_cnt++;
     }
+		yield();
   }
   f2.close();
   *sj_length = sj_cnt;
