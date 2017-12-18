@@ -1,6 +1,6 @@
 /*
   UTF8toSJIS.cpp - for ESP-WROOM-02 ( esp8266 )
-  Beta version 1.41
+  Beta version 1.50
   This is a library for converting from UTF-8 code string to Shift_JIS code string.
   In advance, you need to upload a conversion table file Utf8Sjis.tbl using SPIFFS file system ESP-WROOM-02(ESP8266) to flash.
   GitHub---> https://github.com/mgo-tec/UTF8_to_Shift_JIS
@@ -19,7 +19,7 @@ furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
+ 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,16 +37,28 @@ UTF8toSJIS::UTF8toSJIS(){}
 //***********String型文字列をShift_JISコードに変換************************************
 void UTF8toSJIS::UTF8_to_SJIS_str_cnv(const char* UTF8SJIS_file, String strUTF8, uint8_t* sjis_byte, uint16_t* sj_length)
 {
+  SPIFFS.begin();
+  File f2 = SPIFFS.open(UTF8SJIS_file, "r");
+
+  UTF8toSJIS::UTF8_to_SJIS_str_cnv(f2, strUTF8, sjis_byte, sj_length);
+
+  f2.close();
+}
+//***********String型文字列をShift_JISコードに変換************************************
+void UTF8toSJIS::UTF8_to_SJIS_str_cnv(String strUTF8, uint8_t* sjis_byte, uint16_t* sj_length)
+{
+  UTF8toSJIS::UTF8_to_SJIS_str_cnv(__UtoS, strUTF8, sjis_byte, sj_length);
+}
+//***********String型文字列をShift_JISコードに変換************************************
+void UTF8toSJIS::UTF8_to_SJIS_str_cnv(File f2, String strUTF8, uint8_t* sjis_byte, uint16_t* sj_length)
+{
   uint16_t sj_cnt = 0;
   uint16_t fnt_cnt = 0;
   uint32_t sp_addres=0x9DCC;//スペース
   uint8_t SJ[2];
-  
+
   uint16_t str_length = strUTF8.length();
-  
-  SPIFFS.begin();
-  File f2 = SPIFFS.open(UTF8SJIS_file, "r");
-  
+
   while(strUTF8[fnt_cnt] != '\0'){
     if(strUTF8[fnt_cnt]>=0xC2 && strUTF8[fnt_cnt]<=0xD1){//2バイト文字
       UTF8toSJIS::UTF8_To_SJIS_code_cnv(strUTF8[fnt_cnt],strUTF8[fnt_cnt+1],0x00, &sp_addres);
@@ -79,10 +91,8 @@ void UTF8toSJIS::UTF8_to_SJIS_str_cnv(const char* UTF8SJIS_file, String strUTF8,
     }
 		yield();
   }
-  f2.close();
   *sj_length = sj_cnt;
 }
-
 //***********UTF-8コードをSPIFFS内の変換テーブルを読み出してShift-JISコードに変換****
 void UTF8toSJIS::UTF8_To_SJIS_code_cnv(uint8_t utf8_1, uint8_t utf8_2, uint8_t utf8_3, uint32_t* spiffs_addrs)
 {
@@ -91,7 +101,7 @@ void UTF8toSJIS::UTF8_To_SJIS_code_cnv(uint8_t utf8_1, uint8_t utf8_2, uint8_t u
     *spiffs_addrs = ((utf8_1<<8 | utf8_2)-0xC2A2)*2 + 0xB0; //文字"¢" UTF8コード C2A2～、S_jisコード8191
   }else if(utf8_2>=0x80){
 		uint32_t UTF8uint = (utf8_1<<16) | (utf8_2<<8) | utf8_3;
-		
+
 		switch(utf8_1){
 			case 0xE2:
 				*spiffs_addrs = (UTF8uint-0xE28090)*2 + 0x1EEC; //文字"‐" UTF8コード E28090～、S_jisコード815D
@@ -128,7 +138,7 @@ void UTF8toSJIS::UTF8_To_SJIS_code_cnv(uint8_t utf8_1, uint8_t utf8_2, uint8_t u
 		}
   } 
 }
-
+//***********************************************
 void UTF8toSJIS::SPIFFS_Flash_UTF8SJIS_Table_Read(File ff, uint32_t addrs, uint8_t* buf)
 {
   if(ff){
